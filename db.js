@@ -17,7 +17,7 @@ window.TetenetDB = {
   "materiales": [
     { "id": "mat_1", "nombre": "Fibra óptica (metros)", "precio": 0.13 },
     { "id": "mat_2", "nombre": "Puntas/Conectores", "precio": 1.7 },
-    { "id": "mat_3", "nombre": "Router ONT", "precio": 45.0 }
+    { "id": "mat_3", "nombre": "Router ONT", "precio": 45.0 },
     { "id": "mat_4", "nombre": "Dick", "precio": 450.0 }
   ],
   "zonas": ["BNA", "PZO", "PGN", "TRG"],
@@ -25,4 +25,5 @@ window.TetenetDB = {
   "tickets": [] 
 
 };
+
 
