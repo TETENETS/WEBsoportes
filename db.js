@@ -13,11 +13,12 @@ window.TetenetDB = {
     "J-99887766": { "Cliente_nombre": "Empresa C.A.", "telefono": "0281-2223344", "plan": "200 Mbps", "zona": "TRG", "caja_nap": "NAP-05-TRG", "direccion": "Centro Comercial Principal" }
   },
   "materiales": [
-    { "id": "mat_1", "nombre": "Fibra óptica (metros)", "precio": 1.0 },
+    { "id": "mat_1", "nombre": "Fibra óptica (metros)", "precio": 0.13 },
     { "id": "mat_2", "nombre": "Puntas/Conectores", "precio": 1.7 },
     { "id": "mat_3", "nombre": "Router ONT", "precio": 45.0 }
   ],
   "zonas": ["BNA", "PZO", "PGN", "TRG"],
   "tecnicos": ["Técnico 1", "Técnico 2", "Técnico Guardia"],
   "tickets": [] 
+
 };
