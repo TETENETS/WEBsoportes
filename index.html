@@ -7,11 +7,11 @@
     <link rel="stylesheet" href="styles.css">
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="env-config.js"></script>
-    <script src="api.js"></script> <script src="app.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <script src="env-config.js"></script>
+    <script src="api.js"></script>
+    <script src="app.js"></script>
 </head>
 <body>
 
@@ -26,7 +26,6 @@
     </div>
 
     <div id="app-container" class="hidden">
-        
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">TETENET</div>
             <ul class="sidebar-menu" id="menu-analista">
@@ -55,24 +54,19 @@
                         <div class="chart-wrapper"><canvas id="chartDiario"></canvas></div>
                     </div>
                     <div class="chart-container">
-                        <h4 style="margin-top:0;">Volumen Semanal (Todos)</h4>
+                        <h4 style="margin-top:0;">Volumen Semanal</h4>
                         <div class="chart-wrapper"><canvas id="chartSemanalBarras"></canvas></div>
                     </div>
                 </div>
                 <div class="card">
                     <h4>Gestión de Tickets</h4>
                     <table id="table-all-tickets">
-                        <thead><tr>
-                                <th>ID</th>
-                                <th>Cliente</th>
-                                <th>Técnico</th>
-                                <th>Estado</th>
-                                <th>F. Asignación</th>
-                                <th>F. Solución</th>
-                                <th>Acciones</th>
+                        <thead>
+                            <tr>
+                                <th>ID</th><th>Cliente</th><th>Técnico</th><th>Estado</th><th>F. Asignación</th><th>Acciones</th>
                             </tr>
                         </thead>
-                            <tbody></tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
@@ -88,9 +82,7 @@
                         <label>Cédula</label>
                         <div style="display:flex; gap:5px;">
                             <select id="nt-cedula-tipo" style="width: 60px;">
-                                <option value="V">V</option>
-                                <option value="E">E</option>
-                                <option value="J">J</option>
+                                <option value="V">V</option><option value="E">E</option><option value="J">J</option>
                             </select>
                             <input type="text" id="nt-cedula-num" placeholder="12345678" style="flex:1;">
                             <button class="btn btn-primary" onclick="TicketModule.buscarCliente()">Buscar</button>
@@ -115,11 +107,10 @@
                             <select id="nt-tecnico" onchange="TicketModule.generarHoras()"></select>
                         </div>
                         <div class="form-group">
-                            <label>Hora</label>
+                            <label>Hora disponible</label>
                             <select id="nt-hora"></select>
                         </div>
                     </div>
-
                     <div class="form-group">
                         <label>Motivo</label>
                         <select id="nt-motivo" onchange="TicketModule.toggleMotivo()">
@@ -129,7 +120,7 @@
                         </select>
                         <input type="text" id="nt-motivo-otro" class="hidden" placeholder="Especifique el motivo..." style="margin-top: 8px;">
                     </div>
-                    </div>
+                    <br>
                     <button class="btn btn-success" onclick="TicketModule.crearTicket()">Guardar Ticket</button>
                 </div>
             </div>
@@ -144,20 +135,9 @@
 
             <div id="view-resolver-ticket" class="view card hidden">
                 <h3 style="margin-top: 0; color: #288fad;">Ticket: <span id="rt-id"></span></h3>
-                
-                <div id="rt-estado-pendiente" class="hidden" style="text-align: center; padding: 30px 15px; background: #e2f3f5; border: 2px dashed #288fad; border-radius: 8px; margin-bottom: 20px;">
-                    <button class="btn btn-primary" style="font-size: 1.5em; padding: 15px 40px; text-transform: uppercase; box-shadow: 0 4px 6px rgba(0,0,0,0.2);" onclick="TicketModule.iniciarSoporte()">▶ Iniciar Soporte</button>
-                    <p style="color: #555; margin-top: 15px; margin-bottom: 0;">Presiona este botón al llegar al sitio para habilitar la planilla y notificar al sistema.</p>
+                <div id="rt-estado-pendiente" class="hidden" style="text-align: center; padding: 30px; border: 2px dashed #288fad; border-radius: 8px;">
+                    <button class="btn btn-primary" onclick="TicketModule.iniciarSoporte()">▶ Iniciar Soporte</button>
                 </div>
-
-                <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #e7eaec;">
-                    <div class="form-row" style="margin-bottom: 0;">
-                        <div class="form-group" style="margin-bottom: 10px;"><strong>Cliente:</strong> <span id="rt-cliente"></span></div>
-                        <div class="form-group" style="margin-bottom: 10px;"><strong>Dirección:</strong> <span id="rt-dir"></span></div>
-                        <div class="form-group" style="margin-bottom: 0;"><strong>Caja NAP:</strong> <span id="rt-caja-nap"></span></div>
-                    </div>
-                </div>
-
                 <div id="rt-formulario-resolucion">
                     <hr>
                     <div class="form-group"><label>Trabajo Realizado</label><textarea id="rt-descripcion" rows="3"></textarea></div>
@@ -179,25 +159,13 @@
                     <hr>
                     <label>Firma Cliente</label>
                     <canvas id="signature-pad"></canvas>
-                    <div style="margin-top: 15px; display:flex; gap:5px; flex-wrap:wrap;">
+                    <div style="margin-top: 15px;">
                         <button class="btn btn-success" onclick="TicketModule.cerrarTicket('resuelto')">Resuelto</button>
                         <button class="btn btn-danger" onclick="TicketModule.cerrarTicket('sin resolver')">Sin Resolver</button>
-                        <button class="btn btn-warning" onclick="TicketModule.cerrarTicket('pendiente')">Pausar</button>
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
-
-    <div id="modal-preview" class="modal hidden">
-        <div class="modal-content">
-            <span class="close-modal" onclick="UIModule.cerrarPreview()">&times;</span>
-            <div id="pdf-content" style="padding: 20px;"></div>
-            <div id="pdf-actions" style="margin-top: 20px; text-align: right;"></div>
-        </div>
-    </div>
-
-    <script src="app.js"></script>
 </body>
 </html>
