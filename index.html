@@ -107,15 +107,8 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Motivo</label>
-                            <select id="nt-motivo" onchange="TicketModule.toggleMotivo()">
-                                <option>Sin navegación</option>
-                                <option>Intermitencia</option>
-                                <option>Cambio de equipo</option>
-                                <option>Mudanza</option>
-                                <option value="Otro">Otro (Especificar)</option>
-                            </select>
-                            <input type="text" id="nt-motivo-otro" class="hidden" placeholder="Especifique el motivo..." style="margin-top: 8px;">
+                            <label>Fecha del Soporte</label>
+                            <input type="date" id="nt-fecha" onchange="TicketModule.generarHoras()">
                         </div>
                         <div class="form-group">
                             <label>Asignar Técnico</label>
@@ -125,6 +118,17 @@
                             <label>Hora</label>
                             <select id="nt-hora"></select>
                         </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Motivo</label>
+                        <select id="nt-motivo" onchange="TicketModule.toggleMotivo()">
+                            <option value="Sin navegación">Sin navegación</option>
+                            <option value="Intermitencia">Intermitencia</option>
+                            <option value="Otro">Otro (Especificar)</option>
+                        </select>
+                        <input type="text" id="nt-motivo-otro" class="hidden" placeholder="Especifique el motivo..." style="margin-top: 8px;">
+                    </div>
                     </div>
                     <button class="btn btn-success" onclick="TicketModule.crearTicket()">Guardar Ticket</button>
                 </div>

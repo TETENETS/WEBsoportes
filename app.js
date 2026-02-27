@@ -65,9 +65,33 @@ const TicketModule = {
     drawing: false,
 
     prepararFormulario: function() {
-        document.getElementById('nt-datos-cliente').classList.add('hidden');
-        document.getElementById('nt-cedula-num').value = '';
-        this.generarHoras();
+            document.getElementById('nt-datos-cliente').classList.add('hidden');
+            // Establecer fecha de hoy por defecto
+            document.getElementById('nt-fecha').value = new Date().toISOString().split('T')[0];
+            this.llenarTecnicos();
+        },
+
+    llenarTecnicos: async function() {
+            try {
+                // Ahora cargamos técnicos (que son usuarios tipo operaciones)
+                const tecnicos = await API.catalogos.getTecnicos();
+                const sel = document.getElementById('nt-tecnico');
+                sel.innerHTML = tecnicos.map(t => `<option value="${t.nombre}">${t.nombre}</option>`).join('');
+                this.generarHoras();
+            } catch (e) { API.log('Error cargando tecnicos', e.message, 'ERROR'); }
+        },
+
+    toggleMotivo: function() {
+        const select = document.getElementById('nt-motivo');
+        const inputOtro = document.getElementById('nt-motivo-otro');
+        // Corregido: Mostrar si el valor es exactamente "Otro"
+        if(select.value === 'Otro') {
+            inputOtro.classList.remove('hidden');
+            inputOtro.required = true;
+        } else {
+            inputOtro.classList.add('hidden');
+            inputOtro.required = false;
+        }
     },
 
     buscarCliente: async function() {
@@ -92,16 +116,32 @@ const TicketModule = {
         finally { btn.innerText = "Buscar"; btn.disabled = false; }
     },
 
-    generarHoras: function() {
-        const sel = document.getElementById('nt-hora');
-        sel.innerHTML = '';
-        let h = 7, m = 30;
-        while(h < 17) {
-            let lbl = `${h.toString().padStart(2, '0')}:${m === 0 ? '00' : '30'}`;
-            sel.innerHTML += `<option>${lbl}</option>`;
-            m += 30; if(m === 60) { m = 0; h++; }
-        }
-    },
+    generarHoras: async function() {
+            const tec = document.getElementById('nt-tecnico').value;
+            const fecha = document.getElementById('nt-fecha').value;
+            const selHora = document.getElementById('nt-hora');
+            
+            if (!tec || !fecha) return;
+
+            try {
+                // Obtenemos tickets del técnico para ese día específico
+                const ticketsHoy = await API.tickets.getOperaciones(tec);
+                const horasOcupadas = ticketsHoy
+                    .filter(t => t.fecha === fecha && t.estado !== 'resuelto')
+                    .map(t => t.hora);
+
+                selHora.innerHTML = '';
+                let h = 7, m = 30;
+                while(h < 17) {
+                    let lbl = `${h.toString().padStart(2, '0')}:${m === 0 ? '00' : '30'}`;
+                    // Solo añadir la hora si no está en la lista de ocupadas para ese día
+                    if (!horasOcupadas.includes(lbl)) {
+                        selHora.innerHTML += `<option>${lbl}</option>`;
+                    }
+                    m += 30; if(m === 60) { m = 0; h++; }
+                }
+            } catch (e) { console.error("Error al generar horas:", e); }
+        },
 
     crearTicket: async function() {
         const datos = {

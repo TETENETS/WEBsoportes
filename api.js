@@ -3,23 +3,31 @@
  * Centraliza la comunicación con n8n y monitorea la salud del sistema.
  */
 const API = {
-    // Sistema de Logging Integral
     log: async function(accion, detalles, tipo = 'INFO') {
-        const timestamp = new Date().toLocaleString();
-        const logEntry = { timestamp, accion, tipo, detalles, usuario: AuthModule.currentUser?.nombre || 'Anónimo' };
+        const logEntry = { 
+            timestamp: new Date().toISOString(), 
+            accion, 
+            tipo, 
+            detalles, 
+            usuario: AuthModule.currentUser?.nombre || 'Anónimo' 
+        };
         
-        console.log(`[${tipo}] ${accion}:`, detalles);
+        // Esto hará que los logs aparezcan en la consola de Easypanel
+        console.log(`[TETENET-LOG][${tipo}] ${accion}`, detalles);
 
-        // Envío opcional a un Webhook de logs para auditoría en tiempo real
         if (window.ENV?.WEBHOOK_LOGS) {
             fetch(window.ENV.WEBHOOK_LOGS, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(logEntry)
-            }).catch(() => {}); // Fallo silencioso del log para no interrumpir la app
+            }).catch(() => {});
         }
     },
 
+    // Nueva función para verificar disponibilidad
+    getTicketsOcupados: (tecnico, fecha) => 
+        API.request(`${window.ENV.WEBHOOK_TICKETS_OPERACIONES}?tecnico=${encodeURIComponent(tecnico)}&fecha=${fecha}`, 'Consulta Disponibilidad'),
+   
     // Motor Genérico de Peticiones con Manejo de Errores
     request: async function(url, actionName, options = {}) {
         try {
