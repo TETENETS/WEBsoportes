@@ -38,7 +38,7 @@ const TicketModule = {
             // Extrae técnicos (usuarios tipo operaciones)
             const lista = await API.catalogos.getTecnicos();
             const sel = document.getElementById('nt-tecnico');
-            sel.innerHTML = lista.map(t => `<option value="${t.nombre}">${t.nombre}</option>`).join('');
+            sel.innerHTML = lista.map(t => `<option value="${t.nombre_tecnico}">${t.nombre_tecnico}</option>`).join('');
             this.generarHoras();
         } catch (e) { API.log('Carga técnicos fallida', e.message, 'ERROR'); }
     },
