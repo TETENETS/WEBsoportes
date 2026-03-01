@@ -211,6 +211,29 @@ app.post("/auth/login", async (req, res) => {
   }
 });
 
+app.get("/auth/verify", verificarToken, async (req, res) => {
+  try {
+    // verificarToken ya adjuntó req.usuario con el payload del token
+    // Buscamos el usuario completo en la BD para asegurar que siga existiendo
+    const result = await db.query(
+      "SELECT * FROM usuarios WHERE id = $1 AND activo = true",
+      [req.usuario.userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({ ok: false, mensaje: "Usuario no encontrado" });
+    }
+
+    const usuario = result.rows[0];
+    const { password_hash, ...userSinPassword } = usuario;
+
+    res.json({ ok: true, user: userSinPassword });
+  } catch (err) {
+    console.error("Error verificando token:", err);
+    res.status(500).json({ ok: false, mensaje: "Error interno del servidor" });
+  }
+});
+
 
 // ============================================================
 // RUTAS — CLIENTES

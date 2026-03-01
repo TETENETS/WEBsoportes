@@ -296,12 +296,44 @@ const AppCtx = createContext(null);
 
 function AppProvider({ children }) {
   const [user,         setUser]         = useState(null);
+  const [iniciando,    setIniciando]    = useState(true); // ← AGREGAR ESTO
   const [tickets,      setTickets]      = useState([]);
   const [tecnicos,     setTecnicos]     = useState([]);
   const [materiales,   setMateriales]   = useState([]);
   const [notification, setNotification] = useState(null);
   const [magicTicket,  setMagicTicket]  = useState(null);
   const [cargando,     setCargando]     = useState(false);
+
+  // Restaurar sesión al cargar la página
+  useEffect(() => {
+    const restaurarSesion = async () => {
+      const token = localStorage.getItem("tetenet_token");
+      if (!token) {
+        setIniciando(false);
+        return;
+      }
+
+      try {
+        // Validar el token con el backend
+        const res = await apiFetch("/auth/verify");
+        if (res.ok && res.user) {
+          setUser(res.user);
+          await cargarCatalogos();
+          await cargarTickets();
+        } else {
+          // Token inválido → limpiar
+          localStorage.removeItem("tetenet_token");
+        }
+      } catch (error) {
+        console.error("Error restaurando sesión:", error);
+        localStorage.removeItem("tetenet_token");
+      } finally {
+        setIniciando(false);
+      }
+    };
+
+    restaurarSesion();
+  }, []); // Solo al montar el componente
 
   // Muestra una notificación toast por N ms
   const showNotif = useCallback((msg, type = "info", duration = 4000) => {
@@ -548,11 +580,23 @@ function SignaturePad({ onChange }) {
   const drawing   = useRef(false);
   const hasDrawn  = useRef(false);
 
-  // Obtiene la posición relativa al canvas, sea mouse o touch
+// ✅ CÓDIGO NUEVO (CORREGIDO)
   const getPos = (e, canvas) => {
     const rect = canvas.getBoundingClientRect();
     const src  = e.touches ? e.touches[0] : e;
-    return { x: src.clientX - rect.left, y: src.clientY - rect.top };
+    
+    // Coordenadas relativas al canvas
+    const x = src.clientX - rect.left;
+    const y = src.clientY - rect.top;
+    
+    // Escalar según la proporción entre tamaño CSS y canvas real
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    return { 
+      x: x * scaleX, 
+      y: y * scaleY 
+    };
   };
 
   const start = (e) => {
@@ -1549,10 +1593,23 @@ function NuevoTicket() {
       tecnicoNombre:    tec?.nombre,
       datosAdicionales: datosExtra,
     });
-    if (!ticket) return;  // bloqueado por duplicado
+    if (!ticket) return;
+    
+    // Mostrar modal de link mágico
     setShowMagic(ticket);
-    setCliente(null);
-    setCedNum("");
+    
+    // Resetear COMPLETAMENTE el formulario
+    setCliente(null);       // Oculta el formulario
+    setCedNum("");          // Limpia búsqueda
+    setDatosExtra([]);      // Limpia datos adicionales
+    setForm({               // Resetea valores iniciales
+      motivo: MOTIVOS[0], 
+      motivoOtro: "", 
+      fecha: HOY, 
+      hora: "07:30", 
+      tecnicoId: tecnicos[0]?.id || "", 
+      tipoVisita: "paga" 
+    });
   };
 
   return (
@@ -1898,6 +1955,36 @@ function AppContent() {
   return user ? <AppLayout /> : <Login />;
 }
 
+// 1️⃣ AppProvider (aquí va TODO el código del Bug 3)
+function AppProvider({ children }) {
+  const [iniciando, setIniciando] = useState(true);
+  
+  useEffect(() => {
+    // ... código de restaurar sesión ...
+  }, []);
+  
+  // ✅ Loader va AQUÍ
+  if (iniciando) {
+    return (<div>🔄 Cargando...</div>);
+  }
+  
+  // ✅ Un solo return
+  return (
+    <AppCtx.Provider value={{
+      user, login, loginMagic, logout,
+      tickets, addTicket, updateTicket, deleteTicket, iniciarTicket, cerrarTicket, actualizarCobro,
+      notification, showNotif,
+      magicTicket, setMagicTicket,
+      tecnicos, materiales, checkDuplicate,
+      addComentario, removeComentario,
+      cargando, cargarTickets,
+    }}>
+      {children}
+    </AppCtx.Provider>
+  );
+}
+// 2️⃣ App (debe ser SIMPLE - 5 líneas)
+// 2️⃣ App (debe ser SIMPLE - 5 líneas)
 export default function App() {
   return (
     <AppProvider>
