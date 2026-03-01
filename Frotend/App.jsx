@@ -294,6 +294,51 @@ const API = {
 // ============================================================
 const AppCtx = createContext(null);
 
+// Ubicación aproximada: Línea 275
+function AppProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [iniciando, setIniciando] = useState(true); // <-- Asegúrate de que esto esté aquí
+  const [tickets, setTickets] = useState([]);
+  // ... resto de tus estados ...
+
+  useEffect(() => {
+    const restaurarSesion = async () => {
+      const token = localStorage.getItem("tetenet_token");
+      if (!token) {
+        setIniciando(false);
+        return;
+      }
+      try {
+        const res = await apiFetch("/auth/verify");
+        if (res.ok && res.user) {
+          setUser(res.user);
+          await cargarCatalogos();
+          await cargarTickets();
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      } finally {
+        setIniciando(false); // Detiene el cargando
+      }
+    };
+    restaurarSesion();
+  }, []);
+
+  // Muestra el loader si aún está verificando la sesión
+  if (iniciando) {
+    return (
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-sidebar)', color: '#fff' }}>
+        🔄 Cargando sesión...
+      </div>
+    );
+  }
+
+  return (
+    <AppCtx.Provider value={{ /* tus valores */ }}>
+      {children}
+    </AppCtx.Provider>
+  );
+}
 
 const useApp = () => useContext(AppCtx);
 
@@ -1755,66 +1800,3 @@ function AppContent() {
   return user ? <AppLayout /> : <Login />;
 }
 
-function AppProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [iniciando, setIniciando] = useState(true); // Estado para el loader
-  const [tickets, setTickets] = useState([]);
-  // ... resto de los estados (tecnicos, materiales, etc.)
-
-  useEffect(() => {
-    const restaurarSesion = async () => {
-      const token = localStorage.getItem("tetenet_token");
-      if (!token) {
-        setIniciando(false);
-        return;
-      }
-      try {
-        const res = await apiFetch("/auth/verify");
-        if (res.ok && res.user) {
-          setUser(res.user);
-          await cargarCatalogos();
-          await cargarTickets();
-        } else {
-          localStorage.removeItem("tetenet_token");
-        }
-      } catch (error) {
-        console.error("Error restaurando sesión:", error);
-        localStorage.removeItem("tetenet_token");
-      } finally {
-        setIniciando(false);
-      }
-    };
-    restaurarSesion();
-  }, []);
-
-  // ✅ Agrega el loader aquí mismo dentro del Provider
-  if (iniciando) {
-    return (
-      <div style={{
-        height: '100vh', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        background: 'var(--color-sidebar)',
-        color: '#fff',
-        fontSize: '1.2em'
-      }}>
-        🔄 Cargando sesión...
-      </div>
-    );
-  }
-
-  return (
-    <AppCtx.Provider value={{
-      user, login, loginMagic, logout,
-      tickets, addTicket, updateTicket, deleteTicket, iniciarTicket, cerrarTicket, actualizarCobro,
-      notification, showNotif,
-      magicTicket, setMagicTicket,
-      tecnicos, materiales, checkDuplicate,
-      addComentario, removeComentario,
-      cargando, cargarTickets,
-    }}>
-      {children}
-    </AppCtx.Provider>
-  );
-}
