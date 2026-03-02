@@ -18,3 +18,10 @@
     "vite": "^5.4.0"
   }
 }
+{
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "start": "npx serve dist -l 80 -s"
+  }
+}

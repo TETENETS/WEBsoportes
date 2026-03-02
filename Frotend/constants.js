@@ -19,8 +19,8 @@ export const ROL_LABELS = {
 
 // 2. CONFIGURACIÓN DE ENTORNO (Sin MOCK_MODE)
 export const ENV = {
-  API_BASE:  import.meta.env.VITE_API_BASE  || "",
-  APP_URL:   import.meta.env.VITE_APP_URL   || window.location.origin,
+  API_BASE: import.meta.env.VITE_API_BASE || "",
+  APP_URL:  import.meta.env.VITE_APP_URL  || window.location.origin,
 };
 
 // 3. ESTÉTICA Y LOGOS
