@@ -427,7 +427,7 @@ function Login() {
         <Logo2 size={64} style={{ display: "block", margin: "0 auto 8px auto" }} />
         <p className="login-box__subtitle">Sistema de Gestión de Soporte</p>
         <div className="login-box__fields">
-          <Input label="Correo" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="usuario@tetenet.com" />
+          <Input label="Correo" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="usuario@email.com" />
           <Input label="Contraseña" type="password" value={pass} onChange={e => setPass(e.target.value)} onKeyDown={e => e.key === "Enter" && handleLogin()} />
           {error && <div className="login-box__error">{error}</div>}
           <Btn onClick={handleLogin} variant="primary" size="lg" disabled={loading}>{loading ? "Ingresando..." : "Ingresar"}</Btn>

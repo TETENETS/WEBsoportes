@@ -207,6 +207,38 @@ export function ModificarModal({ ticket, onClose }) {
   );
 }
 
+// firma
+// Componente especial para renderizar la firma a prueba de fallos en PDF
+export function FirmaParaPDF({ firmaBase64 }) {
+  const canvasRef = useRef(null);
+
+  useMemo(() => {
+    // Usamos setTimeout para asegurar que el canvas ya exista en el DOM
+    if (firmaBase64) {
+      setTimeout(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        const img = new Image();
+        img.onload = () => {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        };
+        img.src = firmaBase64;
+      }, 100);
+    }
+  }, [firmaBase64]);
+
+  return (
+    <canvas 
+      ref={canvasRef} 
+      width={250} 
+      height={80} 
+      style={{ display: "block", margin: "0 auto" }} 
+    />
+  );
+}
+
 export function PlanillaContenido({ ticket, solucion, firma, tipoVisita, materiales, total, estadoCierre }) {
   const Campo = ({ label, value }) => (
     <div className="planilla-field">
@@ -278,15 +310,8 @@ export function PlanillaContenido({ ticket, solucion, firma, tipoVisita, materia
               display: "inline-block", 
               background: "#fafbfc" 
             }}>
-              {/* TRUCO: Usamos un div con background-image en lugar de <img> para forzar a html2canvas a dibujarlo */}
-              <div style={{
-                width: "250px",
-                height: "80px",
-                backgroundImage: `url(${firma || ticket.firma})`,
-                backgroundSize: "contain",
-                backgroundPosition: "center",
-                backgroundRepeat: "no-repeat"
-              }}></div>
+              {/* Usamos nuestro nuevo componente infalible */}
+              <FirmaParaPDF firmaBase64={firma || ticket.firma} />
             </div>
           ) : (
             <div style={{ height: 60, border: "2px dashed var(--color-border)", borderRadius: "var(--radius-md)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-text-light)", fontSize: "0.8em" }}>Sin firma</div>
@@ -584,3 +609,4 @@ export function TicketTable({ tickets: rawTickets, rol }) {
     </tbody></table></div>
   </>);
 }
+
