@@ -143,6 +143,16 @@ const soloSuperAdmin = (req, res, next) => {
 // Helper: generar ID de ticket
 const generarIdTicket = () => "TK-" + Math.random().toString(36).substr(2, 6).toUpperCase();
 
+// Helper: Obtener hora actual en Caracas
+const obtenerHoraCaracas = () => {
+  return new Date().toLocaleTimeString("es-VE", { 
+    timeZone: "America/Caracas", 
+    hour: "2-digit", 
+    minute: "2-digit", 
+    hour12: true 
+  });
+};
+
 // ============================================================
 // AUTH
 // ============================================================
@@ -585,8 +595,14 @@ app.post("/tickets", verificarToken, soloRol(ROLES.VENTAS), async (req, res) => 
 
     // Notificar por WhatsApp (background)
     llamarN8n("/notificar-whatsapp", {
-      evento: "ticket_creado", ticketId: id,
-      tecnicoNombre, tecnicoId, clienteNombre, hora, fecha, motivo,
+      evento: "ticket_creado", 
+      ticketId: id,
+      tecnicoNombre, 
+      tecnicoId, 
+      clienteNombre, 
+      hora, 
+      fecha, 
+      motivo,
       appUrl: process.env.FRONTEND_URL,planillaUrl
     }).catch(() => {});
 
@@ -614,23 +630,45 @@ app.post("/tickets", verificarToken, soloRol(ROLES.VENTAS), async (req, res) => 
 app.patch("/tickets/:id/iniciar", verificarToken, soloRol(ROLES.OPERACIONES), async (req, res) => {
   const { id } = req.params;
   try {
+    // 1. CAMBIO AQUÍ: Pedimos a la base de datos que nos devuelva todos los datos que necesitamos
     const result = await db.query(
-      "UPDATE tickets SET estado = 'encurso' WHERE id = $1 AND estado = 'pendiente' RETURNING id",
+      "UPDATE tickets SET estado = 'encurso' WHERE id = $1 AND estado = 'pendiente' RETURNING id, cliente_nombre, cliente_cedula, cliente_telefono",
       [id]
     );
+
     if (result.rows.length === 0) {
       return res.status(400).json({ ok: false, mensaje: "Ticket no encontrado o ya iniciado" });
     }
+
+    // 2. CAMBIO AQUÍ: Creamos la variable "ticket" sacándola de los resultados de la BD
+    const ticket = result.rows[0];
+
     await db.query(
       "INSERT INTO historial_ticket (ticket_id, usuario_nombre, accion) VALUES ($1, $2, $3)",
       [id, req.usuario.nombre, "Soporte iniciado"]
     );
-    llamarN8n("/notificar-whatsapp", { evento: "ticket_iniciado", ticketId: id }).catch(() => {});
+
+    const horaInicio = obtenerHoraCaracas();
+
+    // 3. CAMBIO AQUÍ: Agregamos evento y ticketId al payload de n8n
+    llamarN8n("/notificar-whatsapp", {
+      evento: "ticket_iniciado",             // Fundamental para que n8n sepa qué hacer
+      ticketId: id,                          // Fundamental para saber qué ticket es
+      hora: horaInicio,                      
+      clienteNombre: ticket.cliente_nombre,  
+      clienteCedula: ticket.cliente_cedula,  
+      clienteTelefono: ticket.cliente_telefono
+    }).catch((err) => {
+      console.error("Fallo al notificar ticket_iniciado:", err);
+    });
+
     res.json({ ok: true, estado: "encurso" });
   } catch (err) {
+    console.error("Error iniciando ticket:", err);
     res.status(500).json({ ok: false, mensaje: "Error iniciando ticket" });
   }
 });
+
 
 // POST /tickets/:id/cerrar
 app.post("/tickets/:id/cerrar", verificarToken, soloRol(ROLES.OPERACIONES), async (req, res) => {
@@ -665,12 +703,18 @@ app.post("/tickets/:id/cerrar", verificarToken, soloRol(ROLES.OPERACIONES), asyn
       [id, req.usuario.nombre, `Ticket cerrado como ${estado}`]
     );
 
+    const horaInicio = obtenerHoraCaracas();
 
     const ticket = result.rows[0];
     llamarN8n("/notificar-whatsapp", {
-      evento: "ticket_cerrado", ticketId: id, estado,
+      evento: "ticket_cerrado", 
+      ticketId: id, 
+      estado,
       clienteNombre: ticket.cliente_nombre,
-      tecnicoNombre: ticket.tecnico_nombre, total,solucion: ticket.solucion,
+      tecnicoNombre: ticket.tecnico_nombre, 
+      total,
+      horaInicio,
+      solucion: ticket.solucion,
       planillaUrl: `${process.env.FRONTEND_URL}/planilla/${id}` // <-- URL limpia
     }).catch(() => {});
 
