@@ -656,7 +656,8 @@ app.patch("/tickets/:id/iniciar", verificarToken, soloRol(ROLES.OPERACIONES), as
       ticketId: id,                          // Fundamental para saber qué ticket es
       hora: horaInicio,                      
       clienteNombre: ticket.cliente_nombre,  
-      clienteCedula: ticket.cliente_cedula,  
+      clienteCedula: ticket.cliente_cedula,
+      equipo: ticket.tecnico_nombre,  
       clienteTelefono: ticket.cliente_telefono
     }).catch((err) => {
       console.error("Fallo al notificar ticket_iniciado:", err);
