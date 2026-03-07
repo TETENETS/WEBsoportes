@@ -272,8 +272,18 @@ export function PlanillaContenido({ ticket, solucion, firma, tipoVisita, materia
           <div className="planilla-section__title">Firma del Cliente</div>
           {(firma || ticket.firma) ? (
             <div style={{ border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)", padding: 4, display: "inline-block", background: "#fafbfc" }}>
-              <img src={firma || ticket.firma} alt="Firma" style={{ height: 80, width: 250, objectFit: "contain", display: "block" }} />
-            </div>
+              <img 
+                src={firma || ticket.firma} 
+                alt="Firma" 
+                style={{ 
+                  height: 80, 
+                  width: "auto",         // Permitimos que el ancho sea automático
+                  maxWidth: 250,         // Limitamos el ancho máximo
+                  display: "block", 
+                  margin: "0 auto"       // La centramos
+                  // Eliminamos objectFit: "contain" que rompe html2canvas
+                }} 
+              />            </div>
           ) : <div style={{ height: 60, border: "2px dashed var(--color-border)", borderRadius: "var(--radius-md)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-text-light)", fontSize: "0.8em" }}>Sin firma</div>}
         </div>
       </div>
